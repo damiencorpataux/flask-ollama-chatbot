@@ -4,7 +4,7 @@ import flask
 blueprint = flask.Blueprint(
     'chatbot',
     __name__,
-    template_folder='templates')  # app = flask.Flask(__name__)
+    template_folder='templates')
 
 model = 'llama3.2'
 initial_messages = [
@@ -33,6 +33,9 @@ def api_chat_say(question):
         model=model,
         messages=flask.session['messages'],
         # stream=True,
+        options={
+            'max_tokens': 2048
+        }
     )
     # def generate():
     #     for chunk in response:

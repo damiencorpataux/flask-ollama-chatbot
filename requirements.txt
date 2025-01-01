@@ -1,3 +1,6 @@
 ollama
 flask
 flask_session
+
+requests
+markdownify
