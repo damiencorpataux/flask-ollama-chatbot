@@ -17,7 +17,7 @@
     }
 </style>
 
-<div class="my-5">
+<div class="my-4">
     <div id="chat">
     </div>
     <i id="spinner" class="bx bx-brain bx-burst bx-sm role-assistant"></i>
@@ -36,9 +36,29 @@
         </label>
     </div>
     <div>
-        <button id="clear" class="btn btn-outline-danger btn-sm">
-            Clear chat history
+        {% set suggestions = [
+            'What cloud expertise ?',
+            'How many years experience ?',
+            'What areas of expertise ?',
+            'Fit for agile management role ?',
+            'DevOps experience ?',
+        ] %}
+        {% for suggestion in suggestions %}
+        <button data-role="suggestion" class="btn btn-outline-secondary btn-sm my-1">
+            {{suggestion}}
         </button>
+        {% endfor %}
+        <span class="text-secondary">&middot;</span>
+        <button id="clear" class="btn btn-outline-danger btn-sm">
+            <i class="bx bx-trash"></i>
+            Clear chat
+        </button>
+<!--
+        <button id="share" class="btn btn-outline-info btn-sm">
+            <i class="bx bx-share-alt"></i>
+            Share chat
+        </button>
+-->
     </div>
 </div>
 
@@ -51,6 +71,7 @@
         chat: document.querySelector('#chat'),
         clear: document.querySelector('#clear'),
         spinner: document.querySelector('#spinner'),
+        suggestions: document.querySelectorAll('[data-role=suggestion]'),
     }
 
     document.addEventListener('DOMContentLoaded', e => {
@@ -66,6 +87,13 @@
             clear_history();
         }
     });
+    for (const suggestion of ui.suggestions) {
+        suggestion.addEventListener('click', e => {
+            ui.query.value = suggestion.innerText;
+            suggestion.hidden = true;
+            query();
+        });
+    }
 
     function query() {
         const question = ui.query.value;
@@ -95,9 +123,16 @@
             response => response.json()
         ).then(history => {
             for (item of history) {
+                // Add history item to chat UI
                 ui.chat.innerHTML += `
                     <p class="role-${item.role}">${item.content}</p>
                 `;
+                // Remove from suggestions UI, if already asked
+                for (const suggestion of ui.suggestions) {
+                    if (suggestion.innerText == item.content && item.role == 'user') {
+                        suggestion.hidden = true;
+                    }
+                }
             }
             loading(false);
         });
@@ -109,24 +144,27 @@
             `${config.api_url}/clear`
         ).then(() => {
             ui.chat.innerHTML = '';
+            for (const suggestion of ui.suggestions) suggestion.hidden = false;
             load_history();
         });
-    }
-
-    function scroll() {
-        ui.query.scrollIntoView();
     }
 
     function loading(active) {
         if (active) {
             ui.query.disabled = true;
             ui.spinner.hidden = false;
+            for (const suggestion of ui.suggestions) suggestion.disabled = true;
         } else {
             ui.query.disabled = false;
             ui.spinner.hidden = true;
+            for (const suggestion of ui.suggestions) suggestion.disabled = false;
             scroll();
             ui.query.focus();
         }
+    }
+
+    function scroll() {
+        ui.query.scrollIntoView({block: "end"});
     }
 </script>
 
