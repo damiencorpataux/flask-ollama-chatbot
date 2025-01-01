@@ -1,0 +1,134 @@
+{% extends "html.html" %}
+
+{% block content %}
+
+<style>
+    .role-user,
+    .role-assistant {
+        white-space: pre-wrap;
+    }
+    .role-user,
+    input#query {
+        color: lightgreen;
+    }
+    .role-assistant {
+        color: darkturquoise;
+        margin-left: 10px;
+    }
+</style>
+
+<div class="my-5">
+    <p class="role-assistant">Hello, feel free to ask a question.</p>
+    <div id="chat">
+    </div>
+    <i id="spinner" class="bx bx-brain bx-burst bx-sm role-assistant"></i>
+</div>
+
+<div class="text-center">
+    <div class="form-floating mb-3">
+        <input autofocus type="text" class="form-control" id="query">
+        <label for="query" class="form-label">
+                Your Question
+                <span class="small text-secondary">
+                    &mdash;
+                    <kbd class="bg-secondary">Enter</kbd> to send
+                </div>
+            </div>
+        </label>
+    </div>
+    <div>
+        <button id="clear" class="btn btn-outline-danger btn-sm">
+            Clear chat history
+        </button>
+    </div>
+</div>
+
+<script>
+    const config = {
+        api_url: '/chat'
+    }
+    const ui = {
+        query: document.querySelector('#query'),
+        chat: document.querySelector('#chat'),
+        clear: document.querySelector('#clear'),
+        spinner: document.querySelector('#spinner'),
+    }
+
+    document.addEventListener('DOMContentLoaded', e => {
+        load_history();
+    });
+    ui.query.addEventListener('keydown', e => {
+        if (e.code == 'Enter' && ![e.altGraphKey, e.altKey, e.ctrlKey, e.metaKey, e.shiftKey].includes(true)) {
+            query();
+        }
+    });
+    ui.clear.addEventListener('click', e => {
+        if (confirm('Clear chat history. Are you sure ?')) {
+            clear_history();
+        }
+    });
+
+    function query() {
+        const question = ui.query.value;
+        if (!question.length) return;
+        ui.query.value = '';
+        loading(true);
+        ui.chat.innerHTML += `
+            <p class="role-user">${question}</p>
+        `;
+        fetch(
+            `${config.api_url}/say/${question}`
+        ).then(
+            response => response.text()
+        ).then(text => {
+            ui.chat.innerHTML += `
+                <p class="role-assistant">${text}</p>
+            `;
+            loading(false);
+        })
+    }
+
+    function load_history() {
+        loading(true);
+        fetch(
+            `${config.api_url}/history`
+        ).then(
+            response => response.json()
+        ).then(history => {
+            for (item of history) {
+                ui.chat.innerHTML += `
+                    <p class="role-${item.role}">${item.content}</p>
+                `;
+            }
+            loading(false);
+        });
+    }
+
+    function clear_history() {
+        loading(true);
+        fetch(
+            `${config.api_url}/clear`
+        ).then(() => {
+            ui.chat.innerHTML = '';
+            load_history();
+        });
+    }
+
+    function scroll() {
+        ui.query.scrollIntoView();
+    }
+
+    function loading(active) {
+        if (active) {
+            ui.query.disabled = true;
+            ui.spinner.hidden = false;
+        } else {
+            ui.query.disabled = false;
+            ui.spinner.hidden = true;
+            scroll();
+            ui.query.focus();
+        }
+    }
+</script>
+
+{% endblock %}
