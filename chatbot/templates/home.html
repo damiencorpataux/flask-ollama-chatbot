@@ -4,10 +4,6 @@
 
 <style>
     .role-user,
-    .role-assistant {
-        white-space: pre-wrap;
-    }
-    .role-user,
     input#query {
         color: lightgreen;
     }
@@ -15,10 +11,18 @@
         color: darkturquoise;
         margin-left: 10px;
     }
+    html {
+        min-height: 100%;
+        background-attachment: cover;
+        background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%) center center no-repeat;
+        overscroll-behavior: none;
+    }
+    body {
+        background-color: rgb(0,0,0,0);
+    }
 </style>
 
-<div class="my-5">
-    <p class="role-assistant">Hello, feel free to ask a question.</p>
+<div class="my-4">
     <div id="chat">
     </div>
     <i id="spinner" class="bx bx-brain bx-burst bx-sm role-assistant"></i>
@@ -37,12 +41,35 @@
         </label>
     </div>
     <div>
-        <button id="clear" class="btn btn-outline-danger btn-sm">
-            Clear chat history
+        {% set suggestions = [
+            'How many years experience ?',
+            'What areas of expertise ?',
+            'Fit for agile management role ?',
+            'DevOps experience ?',
+            'What certifications ?',
+            'What cloud expertise ?',
+            'What languages do you speak ?',
+        ] %}
+        {% for suggestion in suggestions %}
+        <button data-role="suggestion" class="btn btn-outline-secondary btn-sm my-1">
+            {{suggestion}}
         </button>
+        {% endfor %}
+        <span class="text-secondary">&middot;</span>
+        <button id="clear" class="btn btn-outline-danger btn-sm">
+            <i class="bx bx-trash"></i>
+            Clear chat
+        </button>
+<!--
+        <button id="share" class="btn btn-outline-info btn-sm">
+            <i class="bx bx-share-alt"></i>
+            Share chat
+        </button>
+-->
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     const config = {
         api_url: '/chat'
@@ -52,6 +79,7 @@
         chat: document.querySelector('#chat'),
         clear: document.querySelector('#clear'),
         spinner: document.querySelector('#spinner'),
+        suggestions: document.querySelectorAll('[data-role=suggestion]'),
     }
 
     document.addEventListener('DOMContentLoaded', e => {
@@ -67,23 +95,32 @@
             clear_history();
         }
     });
+    for (const suggestion of ui.suggestions) {
+        suggestion.addEventListener('click', e => {
+            ui.query.value = suggestion.innerText;
+            suggestion.hidden = true;
+            query();
+        });
+    }
 
     function query() {
         const question = ui.query.value;
         if (!question.length) return;
         ui.query.value = '';
         loading(true);
-        ui.chat.innerHTML += `
-            <p class="role-user">${question}</p>
-        `;
+        write_conversation({
+            role: 'user',
+            content: question
+        });
         fetch(
-            `${config.api_url}/say/${question}`
+            `${config.api_url}/say/${encodeURIComponent(question)}`
         ).then(
             response => response.text()
         ).then(text => {
-            ui.chat.innerHTML += `
-                <p class="role-assistant">${text}</p>
-            `;
+            write_conversation({
+                role: 'assistant',
+                content: text
+            });
             loading(false);
         })
     }
@@ -96,9 +133,8 @@
             response => response.json()
         ).then(history => {
             for (item of history) {
-                ui.chat.innerHTML += `
-                    <p class="role-${item.role}">${item.content}</p>
-                `;
+                // Add history item to chat UI
+                write_conversation(item);
             }
             loading(false);
         });
@@ -110,24 +146,39 @@
             `${config.api_url}/clear`
         ).then(() => {
             ui.chat.innerHTML = '';
+            for (const suggestion of ui.suggestions) suggestion.hidden = false;
             load_history();
         });
     }
 
-    function scroll() {
-        ui.query.scrollIntoView();
+    function write_conversation(item) {
+        ui.chat.innerHTML += `
+            <div class="role-${item.role}">${marked.parse(item.content)}</div>
+        `;
+        // Remove from suggestions UI, if already asked
+        for (const suggestion of ui.suggestions) {
+            if (suggestion.innerText == item.content && item.role == 'user') {
+                suggestion.hidden = true;
+            }
+        }
     }
 
     function loading(active) {
         if (active) {
             ui.query.disabled = true;
             ui.spinner.hidden = false;
+            for (const suggestion of ui.suggestions) suggestion.disabled = true;
         } else {
             ui.query.disabled = false;
             ui.spinner.hidden = true;
+            for (const suggestion of ui.suggestions) suggestion.disabled = false;
             scroll();
             ui.query.focus();
         }
+    }
+
+    function scroll() {
+        ui.query.scrollIntoView({block: "end"});
     }
 </script>
 
