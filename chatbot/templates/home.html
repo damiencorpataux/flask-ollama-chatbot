@@ -4,10 +4,6 @@
 
 <style>
     .role-user,
-    .role-assistant {
-        white-space: pre-wrap;
-    }
-    .role-user,
     input#query {
         color: lightgreen;
     }
@@ -62,6 +58,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     const config = {
         api_url: '/chat'
@@ -100,17 +97,19 @@
         if (!question.length) return;
         ui.query.value = '';
         loading(true);
-        ui.chat.innerHTML += `
-            <p class="role-user">${question}</p>
-        `;
+        write_conversation({
+            role: 'user',
+            content: question
+        });
         fetch(
             `${config.api_url}/say/${encodeURIComponent(question)}`
         ).then(
             response => response.text()
         ).then(text => {
-            ui.chat.innerHTML += `
-                <p class="role-assistant">${text}</p>
-            `;
+            write_conversation({
+                role: 'assistant',
+                content: text
+            });
             loading(false);
         })
     }
@@ -124,15 +123,7 @@
         ).then(history => {
             for (item of history) {
                 // Add history item to chat UI
-                ui.chat.innerHTML += `
-                    <p class="role-${item.role}">${item.content}</p>
-                `;
-                // Remove from suggestions UI, if already asked
-                for (const suggestion of ui.suggestions) {
-                    if (suggestion.innerText == item.content && item.role == 'user') {
-                        suggestion.hidden = true;
-                    }
-                }
+                write_conversation(item);
             }
             loading(false);
         });
@@ -147,6 +138,18 @@
             for (const suggestion of ui.suggestions) suggestion.hidden = false;
             load_history();
         });
+    }
+
+    function write_conversation(item) {
+        ui.chat.innerHTML += `
+            <div class="role-${item.role}">${marked.parse(item.content)}</div>
+        `;
+        // Remove from suggestions UI, if already asked
+        for (const suggestion of ui.suggestions) {
+            if (suggestion.innerText == item.content && item.role == 'user') {
+                suggestion.hidden = true;
+            }
+        }
     }
 
     function loading(active) {
