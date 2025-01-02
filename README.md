@@ -16,10 +16,12 @@ Install python requirements:
 pip3 install -r requirements.txt
 ```
 
-Run the example and open http://localhost:5000/:
+Run the example:
 ```sh
 flask run
 ```
+
+Open http://localhost:5000/
 
 
 Demo
