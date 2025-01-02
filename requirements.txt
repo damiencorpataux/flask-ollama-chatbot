@@ -3,4 +3,4 @@ flask
 flask_session
 
 requests
-markdownify
+pyyaml

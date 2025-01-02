@@ -34,7 +34,7 @@ def api_chat_say(question):
         messages=flask.session['messages'],
         # stream=True,
         options={
-            'max_tokens': 8192
+            'max_tokens': 32768
         }
     )
     # def generate():
