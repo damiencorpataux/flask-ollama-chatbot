@@ -27,3 +27,13 @@ Demo
 Click to play video (on YouTube):
 
 [![Demonstration video](https://img.youtube.com/vi/zbxCjDpgnRE/0.jpg)](https://www.youtube.com/watch?v=zbxCjDpgnRE "Demonstration video")
+
+The code is **4** files, **322** lines of code:
+```sh
+$ wc -l *.py chatbot/*.py chatbot/templates/*
+      42 app.py
+      61 chatbot/__init__.py
+     185 chatbot/templates/home.html
+      34 chatbot/templates/html.html
+     322 total
+```

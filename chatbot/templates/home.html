@@ -11,6 +11,15 @@
         color: darkturquoise;
         margin-left: 10px;
     }
+    html {
+        min-height: 100%;
+        background-attachment: cover;
+        background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%) center center no-repeat;
+        overscroll-behavior: none;
+    }
+    body {
+        background-color: rgb(0,0,0,0);
+    }
 </style>
 
 <div class="my-4">
@@ -40,13 +49,14 @@
             'What certifications ?',
             'What cloud expertise ?',
             'What languages do you speak ?',
+            'Please summarize your experience',
+            'Please show your CV',
         ] %}
         {% for suggestion in suggestions %}
         <button data-role="suggestion" class="btn btn-outline-secondary btn-sm my-1">
             {{suggestion}}
         </button>
         {% endfor %}
-        <span class="text-secondary">&middot;</span>
         <button id="clear" class="btn btn-outline-danger btn-sm">
             <i class="bx bx-trash"></i>
             Clear chat
