@@ -1,10 +1,18 @@
 import ollama
 import flask
+import flask_limiter
 
 blueprint = flask.Blueprint(
     'chatbot',
     __name__,
     template_folder='templates')
+
+limiter =flask_limiter.Limiter(
+    flask_limiter.util.get_remote_address,
+    app=flask.current_app,
+    # default_limits=["100 per minute"],
+    storage_uri="memory://",
+)
 
 model = 'llama3.2'
 initial_messages = [
@@ -27,6 +35,7 @@ def web_ui():
     return flask.render_template('home.html')
 
 @blueprint.route('/chat/say/<path:question>')
+@limiter.limit("10 per minute")
 def api_chat_say(question):
     flask.session['messages'].append({'role': 'user', 'content': question})
     response = ollama.chat(
