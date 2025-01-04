@@ -49,13 +49,14 @@
             'What certifications ?',
             'What cloud expertise ?',
             'What languages do you speak ?',
+            'Please summarize your experience',
+            'Please show your CV',
         ] %}
         {% for suggestion in suggestions %}
         <button data-role="suggestion" class="btn btn-outline-secondary btn-sm my-1">
             {{suggestion}}
         </button>
         {% endfor %}
-        <span class="text-secondary">&middot;</span>
         <button id="clear" class="btn btn-outline-danger btn-sm">
             <i class="bx bx-trash"></i>
             Clear chat
@@ -85,9 +86,28 @@
     document.addEventListener('DOMContentLoaded', e => {
         load_history();
     });
+    let history_index = 0;
+    let history_current_query = '';
     ui.query.addEventListener('keydown', e => {
-        if (e.code == 'Enter' && ![e.altGraphKey, e.altKey, e.ctrlKey, e.metaKey, e.shiftKey].includes(true)) {
+        if ([e.altGraphKey, e.altKey, e.ctrlKey, e.metaKey, e.shiftKey].includes(true)) {
+            return;
+        }
+        if (e.keyCode === 13) {  // Note: Enter key, on both desktop and mobile.
             query();
+        }
+        if (['ArrowUp', 'ArrowDown'].includes(e.code)) {
+            if (history_index == 0) history_current_query = ui.query.value;  // Note: Save current user input.
+            const history = ui.chat.querySelectorAll('.role-user');
+            if (e.code == 'ArrowDown') history_index = Math.min(history_index+1, 0);
+            if (e.code == 'ArrowUp') history_index = Math.max(history_index-1, -history.length);
+            if (history_index == 0) {
+                ui.query.value = history_current_query;
+            } else {
+                let previous = history[history.length+history_index];
+                ui.query.value = previous.textContent;
+            }
+        } else {
+            history_index = 0;
         }
     });
     ui.clear.addEventListener('click', e => {
@@ -146,8 +166,8 @@
             `${config.api_url}/clear`
         ).then(() => {
             ui.chat.innerHTML = '';
-            for (const suggestion of ui.suggestions) suggestion.hidden = false;
             load_history();
+            for (const suggestion of ui.suggestions) suggestion.hidden = false;
         });
     }
 
@@ -173,7 +193,11 @@
             ui.spinner.hidden = true;
             for (const suggestion of ui.suggestions) suggestion.disabled = false;
             scroll();
-            ui.query.focus();
+            console.log(window.navigator.maxTouchPoints)
+            if (window.navigator.maxTouchPoints < 1) {
+                // Note: Only focus on non-touchscreen devices, to avoid displaying the keyboard.
+                ui.query.focus();
+            }
         }
     }
 

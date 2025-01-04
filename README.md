@@ -16,10 +16,12 @@ Install python requirements:
 pip3 install -r requirements.txt
 ```
 
-Run the example and open http://localhost:5000/:
+Run the example:
 ```sh
 flask run
 ```
+
+Open http://localhost:5000/
 
 
 Demo
@@ -31,9 +33,9 @@ Click to play video (on YouTube):
 The code is **4** files, **322** lines of code:
 ```sh
 $ wc -l *.py chatbot/*.py chatbot/templates/*
-      42 app.py
-      61 chatbot/__init__.py
-     185 chatbot/templates/home.html
+      50 app.py
+      70 chatbot/__init__.py
+     209 chatbot/templates/home.html
       34 chatbot/templates/html.html
-     322 total
+     363 total
 ```

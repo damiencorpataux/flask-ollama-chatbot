@@ -1,6 +1,7 @@
 ollama
 flask
 flask_session
+flask_limiter
 
 requests
 pyyaml
