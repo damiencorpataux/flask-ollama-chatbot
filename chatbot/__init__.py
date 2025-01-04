@@ -15,15 +15,22 @@ limiter =flask_limiter.Limiter(
 )
 
 model = 'llama3.2'
-initial_messages = [
-    {
-        'role': 'system',
-        'content': 'You are a helpful assistant.'
-    }
-]
+languages = ['en', 'fr']
+system_message = 'You are a helpful assistant.'
+first_message = 'Hello, how can I help you ?'
 
 @blueprint.before_request
 def before_request():
+    initial_messages = [
+        {
+            'role': 'system',
+            'content': system_message
+        },
+        {
+            'role': 'assistant',
+            'content': first_message
+        }
+    ]
     try:
         flask.session['messages']
     except KeyError:
@@ -31,8 +38,10 @@ def before_request():
         print('Initialized chat messages:', flask.session['messages'])
 
 @blueprint.route('/')
-def web_ui():
-    return flask.render_template('home.html')
+@blueprint.route('/<lang>')
+def web_ui(lang='en'):
+    api_chat_translate(lang)  # FIXME: Pageload too long, make it async
+    return flask.render_template('home.html', languages=languages)
 
 @blueprint.route('/chat/say/<path:question>')
 @limiter.limit("10 per minute")
@@ -68,3 +77,33 @@ def api_chat_clear():
     del flask.session['messages']
     before_request()
     return '', 201
+
+# @blueprint.route('/chat/translate')
+def api_chat_translate(lang):
+    # FIXME: make it called async'ly from the webpage.
+    if lang != flask.session.get('last_translated_to'):
+        if lang == 'en':
+            translation = first_message
+        else:
+            translation = translate('en', lang, flask.session['messages'][1]['content'])
+        flask.session['messages'][1]['content'] = translation
+        flask.session['last_translated_to'] = lang
+
+def translate(source, destination, text):
+    response = ollama.chat(
+        model=model,
+        messages=[
+            {
+                'role': 'system',
+                'content': f'You are a language translator. Please translate the user input from {source} to {destination} without any comment or remark. Just output the translated text. Use a very polite and inviting tone.'
+            },
+            {
+                'role': 'user',
+                'content': text
+            }
+        ],
+        options={
+            # 'max_tokens': 32768
+        }
+    )
+    return response['message']['content']
