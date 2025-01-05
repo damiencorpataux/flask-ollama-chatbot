@@ -34,7 +34,7 @@ Demo
 -
 Click to play video (on YouTube):
 
-[![Demonstration video](https://img.youtube.com/vi/zbxCjDpgnRE/0.jpg)](https://www.youtube.com/watch?v=zbxCjDpgnRE "Demonstration video")
+[![Demonstration video](https://img.youtube.com/vi/HqmJNq8V2ss/0.jpg)](https://www.youtube.com/watch?v=HqmJNq8V2ss "Demonstration video")
 
 The code is **4** files, **466** lines of code:
 ```sh
