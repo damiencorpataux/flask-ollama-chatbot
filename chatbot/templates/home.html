@@ -135,14 +135,47 @@
         fetch(
             `${config.api_url}/say/${encodeURIComponent(question)}`
         ).then(
-            response => response.text()
-        ).then(text => {
+            response => response.body
+        ).then(rs => {
             write_conversation({
                 role: 'assistant',
-                content: text
+                content: ''
             });
-            loading(false);
-        })
+            const reader = rs.getReader();
+            return new ReadableStream({
+                async start(controller) {
+                    let text = '';
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;  // When no more data needs to be consumed, break the reading
+                        // Do your work: ¿¿ Checkout what value returns ¿¿
+                        const chunk = new TextDecoder().decode(value);
+                        text += chunk;
+                        // ui.chat.children[ui.chat.children.length-1].innerHTML += chunk;
+                        ui.chat.children[ui.chat.children.length-1].remove();
+                        write_conversation({
+                            role: 'assistant',
+                            content: text
+                        });
+                        // Optionally append the value if you need the full blob later.
+                        // controller.enqueue(value);
+                    }
+                    // Close the stream
+                    controller.close();
+                    reader.releaseLock();
+                    loading(false);
+                }
+            });
+        });
+        // ).then(
+        //     response => response.text()
+        // ).then(text => {
+        //     write_conversation({
+        //         role: 'assistant',
+        //         content: text
+        //     });
+        //     loading(false);
+        // });
     }
 
     function load_history() {
@@ -193,7 +226,6 @@
             ui.spinner.hidden = true;
             for (const suggestion of ui.suggestions) suggestion.disabled = false;
             scroll();
-            console.log(window.navigator.maxTouchPoints)
             if (window.navigator.maxTouchPoints < 1) {
                 // Note: Only focus on non-touchscreen devices, to avoid displaying the keyboard.
                 ui.query.focus();
