@@ -1,7 +1,13 @@
 flask-ollama-chatbot
 =
-A simply basic Ollama chatbot on Flask. LLM is running locally.
+A simply basic Chatbot on Ollama and Flask.
 
+Features:
+- Minimal approach
+- Customizable system prompt
+- Initial messages translation
+- Response streaming
+- Runs locally using Ollama
 
 Usage
 -
@@ -30,12 +36,12 @@ Click to play video (on YouTube):
 
 [![Demonstration video](https://img.youtube.com/vi/zbxCjDpgnRE/0.jpg)](https://www.youtube.com/watch?v=zbxCjDpgnRE "Demonstration video")
 
-The code is **4** files, **322** lines of code:
+The code is **4** files, **466** lines of code:
 ```sh
-$ wc -l *.py chatbot/*.py chatbot/templates/*
-      50 app.py
-      70 chatbot/__init__.py
-     209 chatbot/templates/home.html
-      34 chatbot/templates/html.html
-     363 total
+$ wc -l *.py chatbot/*.py chatbot/templates/*            
+      44 app.py
+     142 chatbot/__init__.py
+     241 chatbot/templates/home.html
+      39 chatbot/templates/html.html
+     466 total
 ```
