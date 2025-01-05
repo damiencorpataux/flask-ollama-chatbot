@@ -47,23 +47,26 @@ def web_ui(lang='en'):
 @limiter.limit("10 per minute")
 def api_chat_say(question):
     flask.session['messages'].append({'role': 'user', 'content': question})
-    response = ollama.chat(
+    answer = ollama.chat(
         model=model,
         messages=flask.session['messages'],
-        # stream=True,
         options={
             'max_tokens': 32768
-        }
+        },
+        # stream=True
     )
+    flask.session['messages'].append({'role': 'assistant', 'content': answer['message']['content']})
+    return answer['message']['content']
+    # FIXME: Returning streamed answer prevent from writing to session,
+    #   due to the http headers already sent.
     # def generate():
-    #     for chunk in response:
-    #         print(chunk['message']['content'], end='', flush=True)
+    #     flask.session['messages'].append({'role': 'assistant', 'content': ''})
+    #     for chunk in answer:
+    #         # print(chunk['message']['content'], end='', flush=True)
     #         flask.session['messages'][-1]['content'] += chunk['message']['content']
     #         yield chunk['message']['content']
-    #     print('DONE !!!!!!!!!!!!!!!!!', flask.session['messages'][-1])
+    #     print(flask.session['messages'][-1]['content'])
     # return flask.stream_with_context(generate())
-    flask.session['messages'].append({'role': 'assistant', 'content': response['message']['content']})
-    return response['message']['content']
 
 @blueprint.route('/chat/history')
 def api_chat_history():
